@@ -1,11 +1,11 @@
-name: Deploy User Service
+name: Deploy Test Service
 
 on:
   push:
     branches: [ "main" ]
 
 env:
-  SERVICE_NAME: user-service
+  SERVICE_NAME: test-service
 
 jobs:
   build-and-deploy:
