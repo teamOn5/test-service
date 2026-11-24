@@ -3,7 +3,7 @@ server:
 
 spring:
   application:
-    name: user-service # Gateway의 lb://USER-SERVICE 라우팅과 일치
+    name: test-service
   datasource:
     url: ${SPRING_DATASOURCE_URL:jdbc:mysql://172.31.39.86:3306/user_db?useSSL=false&allowPublicKeyRetrieval=true}
     username: ${SPRING_DATASOURCE_USERNAME:user}
