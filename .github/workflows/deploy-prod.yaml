@@ -5,7 +5,7 @@ on:
     branches: [ "main" ]
 
 env:
-  SERVICE_NAME: test-service
+  SERVICE_NAME: notification-service
 
 permissions:
   contents: read
@@ -28,7 +28,7 @@ jobs:
       - name: 3. Gradle 권한 부여 및 빌드
         env:
           GITHUB_USERNAME: ${{ github.actor }}
-          GITHUB_TOKEN: ${{ secrets.GH_PACKAGES_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GH_PACKAGES_TOKEN || secrets.GITHUB_TOKEN }}
         run: |
           chmod +x gradlew
           ./gradlew clean bootJar -x test
@@ -53,6 +53,7 @@ jobs:
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
+            set -e
             cd ~/infra-backend
             curl -s -O https://raw.githubusercontent.com/teamOn5/infra/main/backend-server/docker-compose.apps.yml
             export DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }}
