@@ -15,6 +15,14 @@ java {
 
 repositories {
 	mavenCentral()
+	// teamOn5 공통 모듈 (GitHub Packages 는 public 이어도 토큰이 필요)
+	maven {
+		url = uri("https://maven.pkg.github.com/teamOn5/common-module")
+		credentials {
+			username = findProperty('gpr.user') ?: System.getenv('GITHUB_USERNAME')
+			password = findProperty('gpr.key') ?: System.getenv('GITHUB_TOKEN')
+		}
+	}
 }
 
 ext {
@@ -25,6 +33,7 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'
 	implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
+	implementation 'com.teamon5:common-monitoring:0.2.0'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
