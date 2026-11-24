@@ -3,7 +3,12 @@ server:
 
 spring:
   application:
-    name: test-service # Gateway의 lb://USER-SERVICE 라우팅과 일치
+    name: user-service # Gateway의 lb://USER-SERVICE 라우팅과 일치
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:mysql://172.31.39.86:3306/user_db?useSSL=false&allowPublicKeyRetrieval=true}
+    username: ${SPRING_DATASOURCE_USERNAME:user}
+    password: ${SPRING_DATASOURCE_PASSWORD:1234}
+    driver-class-name: com.mysql.cj.jdbc.Driver
 
 eureka:
   client:
@@ -22,3 +27,9 @@ management:
   endpoint:
     health:
       show-details: always
+
+springdoc:
+  api-docs:
+    path: /api/users/v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
