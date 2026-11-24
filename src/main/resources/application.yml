@@ -3,7 +3,7 @@ server:
 
 spring:
   application:
-    name: user-service # Gateway의 lb://USER-SERVICE 라우팅과 일치
+    name: test-service # Gateway의 lb://USER-SERVICE 라우팅과 일치
 
 eureka:
   client:
