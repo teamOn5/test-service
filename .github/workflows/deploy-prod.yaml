@@ -5,7 +5,7 @@ on:
     branches: [ "main" ]
 
 env:
-  SERVICE_NAME: notification-service
+  SERVICE_NAME: test-service
 
 permissions:
   contents: read
