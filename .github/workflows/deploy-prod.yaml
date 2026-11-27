@@ -52,12 +52,34 @@ jobs:
         env:
           EC2_HOST: ${{ secrets.EC2_HOST || '15.164.172.146' }}
           EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
+          DB_HOST: ${{ secrets.DB_HOST }}
+          SPRING_DATASOURCE_USERNAME: ${{ secrets.SPRING_DATASOURCE_USERNAME }}
+          SPRING_DATASOURCE_PASSWORD: ${{ secrets.SPRING_DATASOURCE_PASSWORD }}
+          SPRING_DATA_REDIS_HOST: ${{ secrets.SPRING_DATA_REDIS_HOST }}
+          SPRING_DATA_REDIS_PORT: ${{ secrets.SPRING_DATA_REDIS_PORT }}
+          SPRING_DATA_REDIS_PASSWORD: ${{ secrets.SPRING_DATA_REDIS_PASSWORD }}
+          SPRING_KAFKA_BOOTSTRAP_SERVERS: ${{ secrets.SPRING_KAFKA_BOOTSTRAP_SERVERS }}
+          SPRING_DATA_MONGODB_URI: ${{ secrets.SPRING_DATA_MONGODB_URI }}
+          EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: ${{ secrets.EUREKA_CLIENT_SERVICEURL_DEFAULTZONE }}
+          BACKEND_EC2_PRIVATE_IP: ${{ secrets.BACKEND_EC2_PRIVATE_IP }}
         run: |
           mkdir -p ~/.ssh
           printf '%s\n' "$EC2_SSH_KEY" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
-          ssh -o StrictHostKeyChecking=no ubuntu@"$EC2_HOST" "mkdir -p ~/apps/${{ env.SERVICE_NAME }}"
+          ssh -o StrictHostKeyChecking=no ubuntu@"$EC2_HOST" "mkdir -p ~/infra-backend ~/apps/${{ env.SERVICE_NAME }}"
           scp -o StrictHostKeyChecking=no docker-compose.prod.yml ubuntu@"$EC2_HOST":~/apps/${{ env.SERVICE_NAME }}/docker-compose.prod.yml
+          cat <<EOF | ssh -o StrictHostKeyChecking=no ubuntu@"$EC2_HOST" "cat > ~/infra-backend/.env"
+          DB_HOST=$DB_HOST
+          SPRING_DATASOURCE_USERNAME=$SPRING_DATASOURCE_USERNAME
+          SPRING_DATASOURCE_PASSWORD=$SPRING_DATASOURCE_PASSWORD
+          SPRING_DATA_REDIS_HOST=$SPRING_DATA_REDIS_HOST
+          SPRING_DATA_REDIS_PORT=$SPRING_DATA_REDIS_PORT
+          SPRING_DATA_REDIS_PASSWORD=$SPRING_DATA_REDIS_PASSWORD
+          SPRING_KAFKA_BOOTSTRAP_SERVERS=$SPRING_KAFKA_BOOTSTRAP_SERVERS
+          SPRING_DATA_MONGODB_URI=$SPRING_DATA_MONGODB_URI
+          EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=$EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
+          BACKEND_EC2_PRIVATE_IP=$BACKEND_EC2_PRIVATE_IP
+          EOF
           ssh -o StrictHostKeyChecking=no ubuntu@"$EC2_HOST" "
             set -e
             export DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }}
