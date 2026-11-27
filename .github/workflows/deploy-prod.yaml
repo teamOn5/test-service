@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: 1. 코스 체크아웃
+      - name: 1. 코드 체크아웃
         uses: actions/checkout@v4
 
       - name: 2. JDK 17 설치
@@ -26,6 +26,7 @@ jobs:
           distribution: 'temurin'
 
       - name: 3. Gradle 권한 부여 및 빌드
+        working-directory: test-service
         env:
           GITHUB_USERNAME: ${{ github.actor }}
           GITHUB_TOKEN: ${{ secrets.GH_PACKAGES_TOKEN || secrets.GITHUB_TOKEN }}
@@ -40,6 +41,7 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: 5. Docker 이미지 빌드 및 푸시
+        working-directory: test-service
         run: |
           IMAGE_NAME=${{ secrets.DOCKER_USERNAME }}/${{ env.SERVICE_NAME }}
           docker build -t $IMAGE_NAME:latest -t $IMAGE_NAME:${{ github.sha }} .
@@ -47,17 +49,20 @@ jobs:
           docker push $IMAGE_NAME:${{ github.sha }}
 
       - name: 6. 백엔드 EC2 원격 자동 배포
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: 15.164.172.146
-          username: ubuntu
-          key: ${{ secrets.EC2_SSH_KEY }}
-          script: |
+        env:
+          EC2_HOST: ${{ secrets.EC2_HOST || '15.164.172.146' }}
+          EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "$EC2_SSH_KEY" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh -o StrictHostKeyChecking=no ubuntu@"$EC2_HOST" "mkdir -p ~/apps/${{ env.SERVICE_NAME }}"
+          scp -o StrictHostKeyChecking=no docker-compose.prod.yml ubuntu@"$EC2_HOST":~/apps/${{ env.SERVICE_NAME }}/docker-compose.prod.yml
+          ssh -o StrictHostKeyChecking=no ubuntu@"$EC2_HOST" "
             set -e
-            cd ~/infra-backend
-            curl -s -O https://raw.githubusercontent.com/teamOn5/infra/main/backend-server/docker-compose.apps.yml
             export DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }}
             export IMAGE_TAG=${{ github.sha }}
-            docker compose -f docker-compose.apps.yml pull ${{ env.SERVICE_NAME }}
-            docker compose -f docker-compose.apps.yml up -d --no-deps ${{ env.SERVICE_NAME }}
+            docker compose --env-file ~/infra-backend/.env -f ~/apps/${{ env.SERVICE_NAME }}/docker-compose.prod.yml pull
+            docker compose --env-file ~/infra-backend/.env -f ~/apps/${{ env.SERVICE_NAME }}/docker-compose.prod.yml up -d --no-deps
             docker image prune -f
+          "
